@@ -1,0 +1,192 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/terrain.gd" id="2_terrain"]
+[ext_resource type="Script" path="res://scripts/drone.gd" id="3_drone"]
+[ext_resource type="Script" path="res://scripts/chase_camera.gd" id="5_camera"]
+[ext_resource type="Script" path="res://scripts/python_bridge.gd" id="6_bridge"]
+[ext_resource type="Texture2D" path="res://terrain/heightmap.png" id="4_heightmap"]
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_material"]
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_material")
+
+[sub_resource type="Environment" id="environment"]
+background_mode = 2
+sky = SubResource("sky")
+ambient_light_source = 2
+ambient_light_color = Color(0.62, 0.72, 0.88, 1)
+ambient_light_energy = 0.4
+
+[sub_resource type="SphereShape3D" id="drone_shape"]
+radius = 0.5
+
+[sub_resource type="StandardMaterial3D" id="drone_material"]
+albedo_color = Color(0.1, 0.45, 1, 1)
+metallic = 0.3
+roughness = 0.35
+
+[sub_resource type="SphereMesh" id="drone_mesh"]
+material = SubResource("drone_material")
+radius = 0.5
+height = 1.0
+
+[sub_resource type="StandardMaterial3D" id="nose_material"]
+albedo_color = Color(0.05, 0.05, 0.08, 1)
+
+[sub_resource type="BoxMesh" id="nose_mesh"]
+material = SubResource("nose_material")
+size = Vector3(0.15, 0.15, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="obstacle_material"]
+albedo_color = Color(0.3, 0.31, 0.36, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="obstacle1_shape"]
+size = Vector3(6, 7, 4)
+
+[sub_resource type="BoxMesh" id="obstacle1_mesh"]
+material = SubResource("obstacle_material")
+size = Vector3(6, 7, 4)
+
+[sub_resource type="BoxShape3D" id="obstacle2_shape"]
+size = Vector3(4, 4, 8)
+
+[sub_resource type="BoxMesh" id="obstacle2_mesh"]
+material = SubResource("obstacle_material")
+size = Vector3(4, 4, 8)
+
+[sub_resource type="BoxShape3D" id="obstacle3_shape"]
+size = Vector3(3, 10, 3)
+
+[sub_resource type="BoxMesh" id="obstacle3_mesh"]
+material = SubResource("obstacle_material")
+size = Vector3(3, 10, 3)
+
+[sub_resource type="StandardMaterial3D" id="human_material"]
+albedo_color = Color(1, 0.15, 0.55, 1)
+emission_enabled = true
+emission = Color(1, 0.1, 0.5, 1)
+emission_energy_multiplier = 2.5
+
+[sub_resource type="BoxShape3D" id="human_shape"]
+size = Vector3(0.6, 1.8, 0.6)
+
+[sub_resource type="BoxMesh" id="human_mesh"]
+material = SubResource("human_material")
+size = Vector3(0.6, 1.8, 0.6)
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.819152, 0.439385, -0.368688, 0, 0.642788, 0.766044, 0.573576, -0.627507, 0.526541, 0, 30, 0)
+shadow_enabled = true
+metadata/_edit_lock_ = true
+
+[node name="Terrain" type="StaticBody3D" parent="." groups=["terrain"]]
+script = ExtResource("2_terrain")
+heightmap = ExtResource("4_heightmap")
+max_height = 12
+metadata/_edit_lock_ = true
+
+[node name="Drone" type="CharacterBody3D" parent="." groups=["drone"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.45882, 0)
+motion_mode = 1
+script = ExtResource("3_drone")
+metadata/_edit_group_ = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Drone"]
+shape = SubResource("drone_shape")
+
+[node name="Sphere" type="MeshInstance3D" parent="Drone"]
+mesh = SubResource("drone_mesh")
+
+[node name="Nose" type="MeshInstance3D" parent="Drone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
+mesh = SubResource("nose_mesh")
+
+[node name="Camera3D" type="Camera3D" parent="Drone"]
+transform = Transform3D(1, 0, 0, 0, 0.936329, 0.351123, 0, -0.351123, 0.936329, 0, 3.5, 8)
+current = true
+far = 500.0
+script = ExtResource("5_camera")
+metadata/_edit_lock_ = true
+
+[node name="Obstacle1" type="StaticBody3D" parent="." groups=["obstacle", "on_terrain"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 9.52353, -17)
+metadata/_edit_group_ = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Obstacle1"]
+shape = SubResource("obstacle1_shape")
+
+[node name="Box" type="MeshInstance3D" parent="Obstacle1"]
+mesh = SubResource("obstacle1_mesh")
+
+[node name="Obstacle2" type="StaticBody3D" parent="." groups=["obstacle", "on_terrain"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 12.4471, -20)
+metadata/_edit_group_ = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Obstacle2"]
+shape = SubResource("obstacle2_shape")
+
+[node name="Box" type="MeshInstance3D" parent="Obstacle2"]
+mesh = SubResource("obstacle2_mesh")
+
+[node name="Obstacle3" type="StaticBody3D" parent="." groups=["obstacle", "on_terrain"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 9.85882, -14)
+metadata/_edit_group_ = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Obstacle3"]
+shape = SubResource("obstacle3_shape")
+
+[node name="Box" type="MeshInstance3D" parent="Obstacle3"]
+mesh = SubResource("obstacle3_mesh")
+
+[node name="Human" type="StaticBody3D" parent="." groups=["human", "on_terrain"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 4.06188, -34)
+metadata/_edit_group_ = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Human"]
+shape = SubResource("human_shape")
+
+[node name="Box" type="MeshInstance3D" parent="Human"]
+mesh = SubResource("human_mesh")
+
+[node name="Label3D" type="Label3D" parent="Human"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+pixel_size = 0.0008
+billboard = 1
+no_depth_test = true
+fixed_size = true
+modulate = Color(1, 0.9, 0.2, 1)
+outline_modulate = Color(0, 0, 0, 1)
+text = "HUMAN"
+font_size = 64
+outline_size = 16
+
+[node name="Glow" type="OmniLight3D" parent="Human"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+light_color = Color(1, 0.2, 0.6, 1)
+light_energy = 4.0
+omni_range = 7.0
+
+[node name="PythonBridge" type="Node" parent="."]
+script = ExtResource("6_bridge")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="HUD"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 700.0
+offset_bottom = 200.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 18
+text = "Drone Testbed"
